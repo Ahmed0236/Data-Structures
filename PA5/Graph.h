@@ -24,6 +24,13 @@ class edge
 		node* Dest;
 		float weight;	
 
+		edge()
+		{	
+			this->Origin = NULL;
+			this->weight = 0;
+			this->Dest = NULL;
+		}
+
 		edge(node*a, node*b, float w)
 		{
 			this->Origin = a;
@@ -56,11 +63,22 @@ class node
 		}
 };
 
-struct greaters
+struct greatersNode
 {
 	bool operator()(node *a, node*b)
 	{
 		if(a->weight > b->weight){
+			return true;
+		}
+		return false;
+	}
+};
+
+struct greatersEdge
+{
+	bool operator()(edge &a, edge &b)
+	{
+		if(a.weight > b.weight){
 			return true;
 		}
 		return false;
@@ -74,12 +92,12 @@ class priorityQueue
 		void push(node* key)
 		{
 			v.push_back(key);
-			make_heap(v.begin(),v.end(),greaters());
+			make_heap(v.begin(),v.end(),greatersNode());
 			return;
 		}
 		node*pop()
 		{	
-			make_heap(v.begin(),v.end(),greaters());
+			make_heap(v.begin(),v.end(),greatersNode());
 			node* temp = new node;
 			for(int i = 0; i < v.size()-1; i++)
 			{	
@@ -93,16 +111,6 @@ class priorityQueue
 		}
 		void update(string p,float d, string parent)
 		{	
-			//find parent
-			// node * ptr = new node();
-			// for(int i = 0; i < v.size(); i++)
-			// {
-			// 	if(v[i]->name == parent)
-			// 	{
-			// 		ptr = v[i];
-			// 		break;
-			// 	}
-			// }
 			//now look for the node
 			for(int i = 0; i < v.size(); i++)
 			{
@@ -110,7 +118,7 @@ class priorityQueue
 				{
 					v[i]->weight = d;
 					v[i]->prev = parent;
-					make_heap(v.begin(),v.end(),greaters());
+					make_heap(v.begin(),v.end(),greatersNode());
 					return;
 				}
 			}
@@ -130,7 +138,53 @@ class priorityQueue
 			}
 			return false;
 		}
+		void insertEdge(node* n, edge e)
+		{
+			
+		}
 };
+
+class Minheap
+{	
+	public:
+		vector<edge> v;
+		void push(edge key)
+		{
+			v.push_back(key);
+			make_heap(v.begin(),v.end(),greatersEdge());
+			return;
+		}
+		edge pop()
+		{	
+			make_heap(v.begin(),v.end(),greatersEdge());
+			edge temp ;
+			for(int i = 0; i < v.size()-1; i++)
+			{	
+				temp = v[i];
+				v[i] = v[i+1];
+				v[i+1] = temp; 
+			}
+			temp = v.back();
+			v.pop_back();
+			return temp;
+		}
+
+		void print()
+		{
+			for(int i = 0; i < v.size(); i++)
+			{
+				cout << v[i].Origin->name << " to " << v[i].Dest->name<< " " << v[i].weight << endl;
+			}
+		}
+		bool isEmpty()
+		{
+			if(v.size() <= 0){
+				return true;
+			}
+			return false;
+		}
+};
+
 
 
 class Graph
@@ -138,13 +192,15 @@ class Graph
 	public:
 
 		priorityQueue q;
+		Minheap h;
 
 		vector<node*> Mst; // minimum spanning tree
 		vector<node*> PERSONS;
 		vector<edge> EDGES;
 		Graph(char* filename, bool isUnitLenght);
 		void display(node* temp);// displays the graph
-
+		
+		void insertEdge(vector<node*>&,edge);
 		void addEdge(string,string,float);
 		node* getPerson(string);
 		void printEdges();
@@ -153,7 +209,8 @@ class Graph
 		void printEdge(edge);
 		node* search(vector<node*>&, string);
 
-
+		
+		int printCost(vector<node*>v);
 		bool isVisited(vector<node*>&,node*);
 		bool Reachable(string start, string dest);
 		vector<node*> Prims();
